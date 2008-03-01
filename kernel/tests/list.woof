@@ -1,0 +1,14 @@
+require: 'kernel/woof_unit.woof'.
+
+test: 'Test the basic list class'
+do: [
+
+    assert: [
+	the: #(1,2,3,4) includes?: 4
+    ] msg: 'Should return true.'.
+
+    assert: [
+	not: the: #(1,2,3,4) includes?: 5
+    ] msg: 'Should return false.'
+
+]

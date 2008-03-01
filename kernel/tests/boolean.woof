@@ -1,0 +1,26 @@
+require: 'kernel/woof_unit.woof'.
+
+test: 'Test boolean logic'
+do: [
+
+    assert: [
+	either: false or: true
+    ] msg: 'true is true'.
+
+    assert: [
+	either: [ 1 == 1] or: [ 2 == 3]
+    ] msg: '1 does in fact equal 1'.
+
+    assert: [
+	both: true and: true
+    ] msg: 'true is true'.
+
+    assert: [
+	not: (both: true and: false)
+    ] msg: 'should be false'.
+
+    assert: [
+	both: [ 1 == 1] and: [2 == 2]
+    ] msg: 'should both be true.'
+
+]

@@ -1,0 +1,63 @@
+@(load_module 'prelude.woof').
+
+define: 'try:catch:' over: #(Block,Block) as: [|tryBlock, catchBlock|
+    withCC: [|cc|
+	handler := [ |error| 
+	    removeExceptionHandler: handler.
+	    do: cc with: #(do: catchBlock with: #(error))
+	].
+	installExceptionHandler: handler.
+	do: tryBlock
+    ]
+].
+
+define: 'installExceptionHandler:' over: #(Block) as: [ |block|
+    $exceptionHandlers := concat: #(block) and: $exceptionHandlers
+].
+
+define: 'removeExceptionHandler:' over: #(Block) as: [ |block|
+    $exceptionHandlers := drop: 1 from: $exceptionHandlers
+].
+
+define: 'throw:' over: #(Error) as: [|error| 
+    if: (firstOf: $exceptionHandlers)
+    do: [|handler| do: handler with: #(error)]
+    else: []
+].
+
+define: 'withCC:' over: #(Block) as: [|block|
+    @(with_cc block)
+].
+
+define: 'do:with:' over: #(Continuation, Nil) as: [|cc, val|
+    @(return_cc cc, val)
+]
+
+
+" 
+
+
+TODO: continuation needs to become a real woof-object, 
+with class and everything, so we can dispatch on them (as above)
+
+@(with_cc block) will compile to code like:
+----
+(SAVE 4) Put the return addr on the stack
+(CC 3) ;; Put a fresh continuation on the stack
+(LVAR x) ;; Put the block on the stack
+(CALLJ) ;; Call the block with continuation as argument
+(HALT)
+-----
+
+@(return_cc cc, val) will compile to code like:
+----
+(LVAR x) Put val on the stack
+(LVAR y) Put cc on the stack
+(RETCC) ;; Pop the continuation, restore the environment & stack, only val remains on the stack
+(HALT)
+-----
+
+"
+
+
+

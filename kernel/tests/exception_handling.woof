@@ -1,0 +1,22 @@
+require: 'kernel/woof_unit.woof'.
+
+test: 'Test exception handling'
+do: [
+
+    assert: [
+	try: [ raise: Error ]
+	catch: [ |e| true ]
+    ] msg: 'Should have caught that exception.'.
+    
+    assert: [
+	try: [
+	    try: [ raise: Error ] 
+	    catch: [ |e| raise: e ]]
+	catch: [|e| true ]
+    ] msg: 'Should have caught that exception.'.
+    
+    assert: [
+	try: [ walkOff: 'a cliff' ]
+	catch: [|e| true ]
+    ] msg: 'Should have raised & caught a no-applicable-function error.'
+]

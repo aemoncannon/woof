@@ -1,0 +1,370 @@
+"***********************************************************
+Prelude to a Woof: Bootstrapping the Woof environment....
+************************************************************"
+
+define: 'loadBlockFromFile:' over: #(String) as: [ |s|
+    @(load_block_from_file s)
+].
+
+define: 'evalFile:' over: #(String) as: [|s|
+    try: [ do: (loadBlockFromFile: s) ]
+    catch: [|e| printLine: e]
+].
+
+"*******************
+Fundamentals
+********************"
+
+define: 'new:' over: #(MetaObject) as: [ | class |
+    @(new_instance class)
+].
+
+define: 'class:super:vars:classVars:' over: #(String, MetaObject, List, List) as: 
+[ | name, sup, vars, classVars |
+    
+    c := @(create_class name,sup,vars,classVars).
+    
+    forEachOf: vars do: [|var|
+	define: (concat: var and: 'Of:') over: #(c) as: [|instance|
+	    @(get_instance_var instance, var)]].
+    
+    forEachOf: vars do: [|var|
+	define: (concat: var and: 'Of:is:') over: #(c, nil) as: [ |instance, val|
+	    @(set_instance_var instance, var, val)]]
+    
+].
+
+define: 'classOf:' over: #(nil) as: [ | o |
+    @(get_instance_var o, 'class')
+].
+
+define: 'classOf:is:' over: #(nil, nil) as: [ | o, klass |
+    (classOf: o) == klass
+].
+
+define: 'superListOf:' over: #(nil) as: [ | o |
+    @(super_list_of o)
+].
+
+define: 'the:isA?:' over: #(nil, nil) as: [ | o, klass |
+    @(class_conforms (classOf: o), klass)
+].
+
+"*******************
+Continuations
+********************"
+
+define: 'withCC:' over: #(Block) as: [|block|
+    @(with_cc block)
+].
+
+define: 'do:with:' over: #(Continuation, nil) as: [|cc, val|
+    @(return_cc cc, val)
+].
+
+"*******************
+Exception Handling
+********************"
+
+define: 'try:catch:if:' over: #(Block, Block, MetaObject) as: [|tryBlock, catchBlock, errorClass|
+    handler := [ |error|
+	do: catchBlock with: #(error)
+    ].
+    @(do_with_handler tryBlock,errorClass,catchBlock)
+].
+
+define: 'try:catch:' over: #(Block, Block) as: [|tryBlock, catchBlock|
+    try: tryBlock catch: catchBlock if: Exception
+].
+
+define: 'raise:' over: #(Exception) as: [ |error| 
+    @(raise_exception error)
+].
+
+define: 'raise:' over: #(MetaException) as: [ |klass| 
+    @(raise_exception (new: klass withMsg: 'Runtime Error'))
+].
+
+"*******************
+Basic math operators
+********************"
+
+define: '+' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_add i1, i2)
+].
+
+define: '*' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_mult i1, i2)
+].
+
+define: '/' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_div i1, i2)
+].
+
+define: '>' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_greater_than i1, i2)
+].
+
+define: '<' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_less_than i1, i2)
+].
+
+define: '>=' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_greater_than_or_equal i1, i2)
+].
+
+define: '==' over: #(Integer, Integer) as: [ | i1, i2 |
+    @(integer_eq i1, i2)
+].
+
+"*******************
+Boolean Logic
+********************"
+
+define: '==' over: #(nil, nil) as: [ | o1, o2 |
+    @(obj_eq o1, o2)
+].
+
+define: '!=' over: #(nil, nil) as: [ | o1, o2 |
+    not: @(obj_eq o1, o2)
+].
+
+define: 'not:' over: #(True) as: [|t| false].
+define: 'not:' over: #(False) as: [|f| true].
+
+define: 'either:or:' over: #(Boolean, Boolean) as: [| b1, b2| 
+    @(bool_or b1,b2)
+].
+
+define: 'either:or:' over: #(Block, Block) as: [| b1, b2| 
+    either: (do: b1) or: (do: b2)
+].
+
+define: 'both:and:' over: #(Boolean, Boolean) as: [| b1, b2| 
+    @(bool_and b1,b2)
+].
+
+define: 'both:and:' over: #(Block, Block) as: [| b1, b2| 
+    both: (do: b1) and: (do: b2)
+].
+
+"*******************
+Input/Output
+********************"
+
+define: 'write:to:' over: #(String, OutputPort) as: [ |s,p|
+    @(write_string s,p).
+    nil
+].
+
+define: 'print:' over: #(Object) as: [|o|
+    write: (show: o) to: STDOUT
+].
+
+define: 'printLine:' over: #(Object) as: [|o|
+    print: o. 
+    print: '\n'
+].
+
+define: 'show:' over: #(Object) as: [|o| @(show_object o) ].
+define: 'show:' over: #(String) as: [|s| s ].
+define: 'show:' over: #(Integer) as: [|i| @(show_number i) ].
+
+"*******************
+Block Execution
+********************"
+
+define: 'do:with:' over: #(Block, List) as: [ |block, argList|
+    @(call_block block, argList)
+].
+
+define: 'do:' over: #(Block) as: [ |block|
+    do: block with: #()
+].
+
+"*******************
+Indexing
+********************"
+
+define: 'item:of:' over: #(Integer, List) as: [|index, list|
+    new: Maybe on: @(list_ref list, index)
+].
+
+"********************
+Conditional Execution
+********************"
+
+define: 'if:do:else:' over: #(True, Block, Block) as: [ | t, then, else |
+    do: then
+].
+
+define: 'if:do:else:' over: #(False, Block, Block) as: [ | t, then, else |
+    do: else
+].
+
+define: 'if:do:' over: #(Boolean, Block) as: [ | b, then |
+    if: b do: then else: []
+].
+
+"********************
+Iteration
+********************"
+
+define: 'do:while:' over: #(Block, Block) as: [| block, boolBlock |
+    do: block.
+    if: (do: boolBlock) do: [ do: block while: boolBlock ]
+].
+
+define: 'while:do:' over: #(Block, Block) as: [ | boolBlock, block |
+    if: (do: boolBlock)
+    do: [ do: block. while: boolBlock do: block ]
+].
+
+define: 'forEachOf:do:' over: #(List,Block) as: [ | list, block |
+    index := 0.
+    while: [ hasValueP: (item: index of: list) ]
+    do: [ 
+	do: block with: #(valueOf:(item: index of: list)). 
+	index := index + 1
+    ]
+].
+
+define: 'forEachWithIndexOf:do:' over: #(List,Block) as: [ | list, block |
+    index := 0.
+    while: [ hasValueP: (item: index of: list) ]
+    do: [ 
+	do: block with: #(valueOf:(item: index of: list), index). 
+	index := index + 1
+    ]
+].
+
+"********************
+String & List Functions
+********************"
+
+define: 'concat:and:' over: #(String, String) as: [|s1, s2|
+    @(string_concat s1, s2)
+].
+define: 'concat:and:' over: #(List, List) as: [|l1, l2|
+    @(list_concat l1, l2)
+].
+
+define: '+' over: #(String, String) as: [|s1, s2|
+    concat: s1 and: s2
+].
+define: '+' over: #(List, List) as: [|l1, l2|
+    concat: l1 and: l2
+].
+
+define: 'length:' over: #(List) as: [|list|
+    @(list_length list)
+].
+define: 'length:' over: #(String) as: [|str|
+    @(string_length str)
+].
+
+define: 'appendLists:' over: #(List) as: [ |list|
+    newList := #().
+    forEachOf: list do: [|ea| newList := concat: newList and: ea ]
+].
+define: 'appendStrings:' over: #(List) as: [ |string|
+    newString := ''.
+    forEachOf: string do: [|ea| newString := concat: newString and: ea ]
+].
+
+define: 'selectFrom:where:' over: #(List, Block) as: [ |list, block|
+    newList := #().
+    forEachOf: list do: [|ea| 
+	if: (do: block with: #(ea))
+	do: [ newList := concat: newList and: #(ea) ]
+    ].
+    newList
+].
+
+define: 'selectWithIndexFrom:where:' over: #(List, Block) as: [ |list, block|
+    newList := #().
+    forEachWithIndexOf: list do: [|ea, i| 
+	if: (do: block with: #(ea,i))
+	do: [ newList := concat: newList and: #(ea) ]
+    ].
+    newList
+].
+
+define: 'the:includes?:' over: #(List, nil) as: [ |list, o|
+    (length: selectFrom: list where: [|ea| ea == o]) > 0
+].
+
+define: 'drop:from:' over: #(Integer, List) as: [ |n, list|
+    selectWithIndexFrom: list where: [|ea,i| i >= n]
+].
+
+define: 'take:from:' over: #(Integer, List) as: [ |n, list|
+    selectWithIndexFrom: list where: [|ea,i| i < n]
+].
+
+define: 'firstOf:' over: #(List) as: [ |list|
+    item: 0 of: list
+].
+
+define: 'fold:over:with:' over: #(Block,List,nil) as: [|block,list,initial|
+    item := (item: 0 of: list).
+    if: item
+    do: [ | value | 
+	fold: block 
+	over: (drop: 1 from: list) 
+	with: (do: block with: #(value, initial))
+    ]
+    else: [initial]
+].
+
+"********************
+Maybe
+********************"
+
+define: 'new:on:' over: #(MetaMaybe, nil) as: [ |class,val|
+    if: (val != nil) 
+    do: [ new: Just on: val]
+    else: [ new: Nothing ]
+].
+
+define: 'new:on:' over: #(MetaJust, nil) as: [|class, val|
+    j := new: Just.
+    @(set_instance_var j,'value',val).
+    j
+].
+
+define: 'if:do:else:' over: #(Just, Block, Block) as: [ |just, then, else|
+    do: then with: #(@(get_instance_var just, 'value'))
+].
+
+define: 'if:do:else:' over: #(Nothing, Block, Block) as: [ |nothing, then, else|
+    do: else
+].
+
+define: 'hasValueP:' over: #(Maybe) as: [ |maybe|
+    if: maybe do: [|v| true] else: [ false ]
+].
+
+define: 'valueOf:' over: #(Just) as: [ |just|
+    @(get_instance_var just, 'value')
+].
+
+define: 'valueOf:' over: #(Nothing) as: [ |nothing|
+    nil
+].
+
+"*******************
+Class definitions
+********************"
+
+class: 'Error' super: Exception vars: #('message') classVars: #().
+
+define: 'new:withMsg:' over: #(MetaError, String) as: [|klass, msg|
+    e := new: klass.
+    messageOf: e is: msg.
+    e
+].
+
+define: 'show:' over: #(Exception) as: [ |e|
+    show: ('Exception raised: ' + @(get_instance_var e, 'message'))
+]

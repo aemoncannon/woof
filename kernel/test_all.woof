@@ -1,0 +1,8 @@
+printLine: 'Beginning tests......'.
+
+require: 'tests/basic.woof'.
+require: 'tests/boolean.woof'.
+require: 'tests/exception_handling.woof'.
+require: 'tests/syntax.woof'.
+require: 'tests/list.woof'
+

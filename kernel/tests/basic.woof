@@ -1,0 +1,16 @@
+require: 'kernel/woof_unit.woof'.
+
+test: 'Test fundamental Woof behaviour'
+do: [
+    class: 'Animal' super: Object vars: #('sex','legs','color') classVars: #().
+    class: 'Moose' super: Animal vars: #() classVars: #().
+
+    assert: [
+	the: (new: Moose) isA?: Object
+    ] msg: 'A moose should be an object.'.
+
+    assert: [
+	the: (new: Moose) isA?: Animal
+    ] msg: 'A moose should be an animal.'
+
+]

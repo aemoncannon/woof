@@ -1,0 +1,43 @@
+require: 'kernel/woof_unit.woof'.
+
+test: 'Test woof syntax'
+do: [
+    define: 'add:to:' over: #(Integer, Integer) as: [ |i1, i2|
+	i1 + i2
+    ].
+
+    assert: [
+	(4 + 3 * 5) == 35
+    ] msg: 'Binary operators should be left-associative.'.
+
+    assert: [
+	(8 + 4 / 2 + 3 * 5) == 45
+    ] msg: 'All these binary operators should be left-associative.'.
+    
+    assert: [
+	(length: 'ape' + 'cat') == 6
+    ] msg: 'Binary funcs should have highest precedence.'.
+    
+    assert: [
+	(add: 1 + 2 * 3 to: 4 + 5 ) == 18
+    ] msg: 'Binary funcs should have highest precedence.'.
+
+    assert: [
+	(add: (add: 1 + 2 to: 2 + 5) to: 5) == 15
+    ] msg: 'Should be = to 15 !'.
+
+    assert: [
+	(add: add: 1 + 2 to: 2 + 5 to: 5) == 15
+    ] 
+    raises: NoApplicableFunctionException
+    msg: 'Should raise an exception (parsed incorrectly as add:to:to:)'.
+
+    assert: [
+	16 == length: '//%^%#@!()[]{}+='
+    ] msg: 'Should be able to use funny characters in strings.'.
+
+    assert: [
+	4 == length: '\'\'\'\"'
+    ] msg: 'Should be able to escape quotes in strings.'
+
+]

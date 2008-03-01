@@ -1,0 +1,66 @@
+Compiler needs to be smarter! for instance, arity matching sig to specs.
+
+The basic woof-object data types will have (fields prim-data class ...)	 where fields are the Woof instance
+fields, prim-data carries implemenation specific data, and class... are reserved for values that ALL
+woof-objects should carry with them and that should have FAST access.
+
+
+We want to start over. The seed of this fresh start is in woof-object.scm, machine-state.scm.
+Principles:
+
+Only machine-state will be passed around - no more multi-stage initialization (globals, then state, etc, bleh)
+
+All code that needs a machine-state will create it throught the same interface, and they -
+    will be given a fully functional woof machine-state - with all primitive globals installed.
+
+NO MORE MACROS FOR CREATING DIFFERENT TYPES OF WOOF-OBJECT
+
+K.I.S.S
+
+
+
+
+
+
+When modules are loaded, they are loaded as blocks.. but they are compiled as a unit with 
+a HALT instruction at the end. 
+We've changed the behaviour of this HALT so it will halt gracefully if the active-context's sender is nil.
+Is this proper?
+
+How do we get arguments from stack to environment when calling a block?
+Pass them as arguments when we create the new context? Leave them on the stack
+and let new-context-for-block pop them off?
+
+Block object's default 'home' should be nil.
+
+Continuations:
+  The problem with our current attempt: We copy the current stack of contexts, and save
+  it to the continuation object. When the cont is invoked, the context stack is replaced.
+  The problem occurs when we want to invoke the cont object multiple time.
+  The first time the cont is invoked, the context is restored correctly, but now that
+  the machine is pointing to the cont's saved context, it trashes the pc and env.
+  
+  A quick and dirty solution is to re-copy the context stack at every invocation - leaving
+  a fresh, clean copy stored in the cont.
+
+  Seaside's implementation of continuations avoids this problem by copying all of the instance
+  vars and data of the context stack (instead of just references to the context objects), 
+  and restoring it all when the cont is invoked.
+
+  Update: Currently using aforementioned 'quick and dirty solution'.
+
+
+Exception Handling:
+  Create an Exception instance e.
+  Walk sender chain, collecting registered exception handlers that conform to type of e.
+  Find top-most handler h.
+  Setup the machine for passing e to h's block.
+  Do so.
+  
+All system objects
+  The 'new-something-or-other' family of functions should all take a machine-state
+  as a parameter, as they may need intelligent defaults, and because they will
+  probably eventually be exposed as woof-objects anyhow, and will need woof classes (that
+  are only available once a machine-state has been established).
+
+A 'with-fresh-state' macro - for conveniantly executing test code...

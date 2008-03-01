@@ -1,0 +1,7 @@
+require: 'kernel/assertions.woof'.
+
+define: 'test:do:' over: #(String, Block) as: [ |name, block|
+    printLine: '\nStarting: ' + name.
+    do: block.
+    printLine: '\n'
+]

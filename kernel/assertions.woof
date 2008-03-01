@@ -1,0 +1,37 @@
+class: 'AssertionFailure' super: Error vars: #('failedBlock') classVars: #().
+class: 'AssertionError' super: Error vars: #('failedBlock') classVars: #().
+
+define: 'new:for:say:' over: #(MetaAssertionFailure, Block,String) as: [|klass, block, msg|
+    e := new: klass withMsg: msg.
+    failedBlockOf: e is: block.
+    e
+].
+define: 'new:for:say:err:' over: #(MetaAssertionError, Block, String, Exception) as: [|klass, block, msg, e |
+    e := new: klass withMsg: (msg + ' : ' + (show: e)).
+    failedBlockOf: e is: block.
+    e
+].
+
+define: 'show:' over: #(AssertionFailure) as: [ |error|
+    show: ('Assertion Failed: ' + (messageOf: error))
+].
+
+define: 'show:' over: #(AssertionError) as: [ |error|
+    show: ('Assertion Error: ' + (messageOf: error))
+].
+
+define: 'assert:msg:' over: #(Block, String) as: [ |block, msg|
+    if: (not: (try: block catch: [ |e|
+	raise: (new: AssertionError for: block say: msg err: e)
+    ]))
+    do: [ raise: (new: AssertionFailure for: block say: msg)]
+    else: [ print: '.'. true ]
+].
+
+define: 'assert:raises:msg:' over: #(Block, MetaException, String) as: [ |block, exClass, msg|
+    if: (not: (try: [do: block. false] catch: [ | e | 
+	the: e isA?: exClass
+    ]))
+    do: [ raise: (new: AssertionFailure for: block say: msg)]
+    else: [print: '.'. true]
+]

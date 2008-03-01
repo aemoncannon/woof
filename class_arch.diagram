@@ -1,0 +1,35 @@
+
+				           --  \
+				        --/ 	--
+				        \ 	/-
+					 \-   /-
+					   \ /
+					MetaClass ---------------------------- nil
+				      /	    |	\
+				    -/	    |	 \-
+				   /	    |	   \
+				  /	    |	    \-
+				-/	    |	      \
+			       /   	    |	       \
+			      /		    |	        \-
+			    -/		    |		  \
+			   /		    |		   \-
+					    |		     \	 --------------- nil
+		       MetaAnimal  ------ MetaObject ----  Class
+			  |		    |		     |
+			  |		    |		     |
+			  |		    |		     |
+			  |		    |		     |
+					    |		     |
+		       Animal  ---------  Object  --------- nil
+			 |		    |		     |
+			 |		    |		     |
+			 |		    |		     |
+			 |		    |		     |
+		      myAnimal	---------  myObject  -----  nil
+					   
+					   
+					   
+Notes: 
+In smalltalk, Class inherits from Behaviour, but I 
+decided to cut the middle-man and go straight to nil.
